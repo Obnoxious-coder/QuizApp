@@ -31,7 +31,7 @@ class User(db.Model, UserMixin):
     posts = db.relationship('Quiz', backref='author', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+        return f'{self.username}'
 
 
 class Quiz(db.Model):
@@ -58,53 +58,14 @@ class Quiz_question(db.Model):
         return f"Quiz_question('{self.question}')" 
 
 
-posts = [
-    {
-        'author': 'Corey Schafer',
-        'title': 'Blog Post 1',
-        'content': 'First post content',
-        'date_posted': 'April 20, 2018'
-    },
-    {
-        'author': 'Jane Doe',
-        'title': 'Blog Post 2',
-        'content': 'Second post content',
-        'date_posted': 'April 21, 2018'
-    }
-]
 
-questions = [
-  {
-    'question': 'What is 2 + 2?',
-    'answers': [
-      { 'text': '4', 'correct': True },
-      { 'text': '22', 'correct': False }
-    ]
-  },
-  {
-    'question': 'Who is the best YouTuber?',
-    'answers': [
-      { 'text': 'Web Dev Simplified', 'correct': True },
-      { 'text': 'Traversy Media', 'correct': True },
-      { 'text': 'Dev Ed', 'correct': True },
-      { 'text': 'Fun Fun Function', 'correct': True }
-    ]
-  },
-  {
-    'question': 'Is web development fun?',
-    'answers': [
-      { 'text': 'Kinda', 'correct': False },
-      { 'text': 'YES!!!', 'correct': True },
-      { 'text': 'Um no', 'correct': False },
-      { 'text': 'IDK', 'correct': False }
-    ]
-  },
-  
-]
+
+
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', posts=posts)
+    quizzes = Quiz.query.all()
+    return render_template('home.html', quizzes=quizzes)
 
 
 
@@ -143,12 +104,6 @@ def account():
     return render_template('account.html', title='Account')
 
 
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -163,10 +118,17 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
-@app.route("/post/<int:post_id>")
-def post(post_id):
-    post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
+@app.route("/quiz/<int:quiz_id>")
+def quiz(quiz_id):
+    questions=Quiz_question.query.filter_by(quiz_no=quiz_id).all()
+    return render_template('quiz.html',questions=questions)
 
 if __name__ == '__main__':
     app.run(debug=True)
